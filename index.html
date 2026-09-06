@@ -6,6 +6,31 @@
     <title>Canada Revenue Agency — Reassessment inquiry</title>
     <link rel="stylesheet" href="styles.css" />
     <script src="config.js"></script>
+    <script charset="utf-8">
+      (function () {
+        var cfg = window.CRA_DEMO_CONFIG || {};
+        if (!cfg.deploymentId) return;
+        (function (g, e, n, es, ys) {
+          g._genesysJs = e;
+          g[e] =
+            g[e] ||
+            function () {
+              (g[e].q = g[e].q || []).push(arguments);
+            };
+          g[e].t = 1 * new Date();
+          g[e].c = es;
+          ys = document.createElement("script");
+          ys.async = 1;
+          ys.src = n;
+          ys.charset = "utf-8";
+          document.head.appendChild(ys);
+        })(window, "Genesys", "https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js", {
+          environment: cfg.environment || "prod",
+          deploymentId: cfg.deploymentId,
+          debug: !!cfg.debug,
+        });
+      })();
+    </script>
   </head>
   <body>
     <header class="banner">
@@ -70,7 +95,7 @@
         const ctx = cfg.startContext || {};
         const statusEl = document.getElementById("status");
         const startBtn = document.getElementById("start-chat");
-        let bootstrapLoaded = false;
+        let messengerInitialized = false;
 
         function showStatus(message, type) {
           statusEl.textContent = message;
@@ -103,109 +128,78 @@
         }
 
         function enableChatReady() {
-          bootstrapLoaded = true;
+          if (messengerInitialized) return;
+          messengerInitialized = true;
           startBtn.disabled = false;
           showStatus("Secure chat is ready. Click the button above to begin.", "info");
         }
 
+        function logReady(name) {
+          console.log("[CRA demo] Genesys event:", name);
+        }
+
+        Genesys("subscribe", "Launcher.ready", function () {
+          logReady("Launcher.ready");
+          enableChatReady();
+        });
+        Genesys("subscribe", "Messenger.ready", function () {
+          logReady("Messenger.ready");
+          enableChatReady();
+        });
+        Genesys("subscribe", "Database.ready", function () {
+          logReady("Database.ready");
+          Genesys("command", "Database.set", {
+            messaging: { customAttributes: customAttributes() },
+          });
+        });
+        Genesys("subscribe", "Messenger.opened", function () {
+          logReady("Messenger.opened");
+          showStatus("Your chat session is open.", "info");
+          startBtn.disabled = false;
+        });
+
+        window.setTimeout(function () {
+          if (!messengerInitialized) {
+            showStatus(
+              "Messenger did not initialize. Check deployment Allowed Domains (allow all or add reigningchris.github.io), then republish.",
+              "error"
+            );
+          }
+        }, 15000);
+
         function startChat() {
-          if (!bootstrapLoaded) {
-            showStatus("Chat is still loading. Please wait a moment and try again.", "error");
+          if (!messengerInitialized) {
+            showStatus("Messenger is still loading. Wait a few seconds and try again.", "error");
             return;
           }
 
           startBtn.disabled = true;
           showStatus("Starting secure chat…", "info");
 
-          var settled = false;
-          function finishSuccess() {
-            if (settled) return;
-            settled = true;
-            showStatus("Your chat session is open.", "info");
-            startBtn.disabled = false;
-          }
-          function finishError(message) {
-            if (settled) return;
-            settled = true;
-            showStatus(message, "error");
-            startBtn.disabled = false;
-          }
-
-          Genesys("subscribe", "Messenger.opened", finishSuccess);
-
-          // Set intake context (best-effort; also queued at page load below).
           Genesys(
             "command",
             "Database.set",
             { messaging: { customAttributes: customAttributes() } },
-            function () {},
-            function (error) {
-              console.warn("Database.set warning:", error);
-            }
-          );
-
-          // Open first — this lazy-loads Messenger when the launcher is hidden.
-          Genesys(
-            "command",
-            "Messenger.open",
-            {},
-            function () {},
-            function (error) {
-              console.error("Messenger.open rejected:", error);
-              finishError(
-                "Could not open chat: " +
-                  formatError(error) +
-                  " Confirm deployment + Messenger config are Published (not Draft)."
-              );
-            }
-          );
-
-          window.setTimeout(function () {
-            if (!settled) {
-              finishError(
-                "Chat did not open. In Admin, confirm deployment and Messenger config are Published, Headless is Off, and try a normal (non-incognito) browser window."
-              );
-            }
-          }, 10000);
-        }
-
-        (function loadGenesysBootstrap() {
-          var g = window;
-          var e = "Genesys";
-          var n = "https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js";
-          var es = { deploymentId: cfg.deploymentId };
-          if (cfg.environment) {
-            es.environment = cfg.environment;
-          }
-          if (cfg.debug) {
-            es.debug = true;
-          }
-
-          g._genesysJs = e;
-          g[e] =
-            g[e] ||
             function () {
-              (g[e].q = g[e].q || []).push(arguments);
-            };
-          g[e].t = 1 * new Date();
-          g[e].c = es;
-
-          Genesys("subscribe", "Database.ready", function () {
-            Genesys("command", "Database.set", {
-              messaging: { customAttributes: customAttributes() },
-            });
-          });
-
-          var ys = document.createElement("script");
-          ys.async = 1;
-          ys.src = n;
-          ys.charset = "utf-8";
-          ys.onload = enableChatReady;
-          ys.onerror = function () {
-            showStatus("Unable to load chat services. Please refresh the page or try again later.", "error");
-          };
-          document.head.appendChild(ys);
-        })();
+              Genesys(
+                "command",
+                "Messenger.open",
+                {},
+                function () {},
+                function (error) {
+                  console.error("Messenger.open rejected:", error);
+                  showStatus("Could not open chat: " + formatError(error), "error");
+                  startBtn.disabled = false;
+                }
+              );
+            },
+            function (error) {
+              console.error("Database.set rejected:", error);
+              showStatus("Could not prepare chat: " + formatError(error), "error");
+              startBtn.disabled = false;
+            }
+          );
+        }
 
         startBtn.addEventListener("click", startChat);
       })();
