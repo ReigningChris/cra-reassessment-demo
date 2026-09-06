@@ -4,7 +4,7 @@ window.CRA_DEMO_CONFIG = {
   // If chat fails to load, set environment to the exact value shown there (often "prod" or "use1").
   environment: "prod",
   debug: true,
-  deploymentId: "47edd54d-c58d-46de-a7c3-f53fcc402753",
+  deploymentId: "47edd54d-c58d-46de-a7c3-7153cc402753",
   avaDemoVersion: "11.0",
   startContext: {
     citizen_name: "Kirk",
