@@ -1,0 +1,187 @@
+/* Canada Revenue Agency — reassessment intake page */
+
+:root {
+  --cra-blue: #26374a;
+  --cra-red: #af3c43;
+  --cra-maple: #ff0000;
+  --cra-light: #f5f7fa;
+  --cra-border: #d1d9e0;
+  --cra-text: #333;
+  --cra-muted: #5c6873;
+  --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--cra-light);
+  color: var(--cra-text);
+  line-height: 1.5;
+}
+
+.banner {
+  background: var(--cra-blue);
+  color: #fff;
+  padding: 0.65rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 4px solid var(--cra-red);
+}
+
+.banner-flag {
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.banner-flag img {
+  display: block;
+  width: 56px;
+  height: 28px;
+  object-fit: contain;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.banner-mark {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.banner-sub {
+  font-size: 0.85rem;
+  opacity: 0.92;
+}
+
+main {
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1.25rem 3rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--cra-border);
+  border-radius: 4px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+  color: var(--cra-blue);
+}
+
+.lead {
+  margin: 0 0 1.5rem;
+  color: var(--cra-muted);
+  font-size: 0.95rem;
+}
+
+fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--cra-blue);
+  margin-bottom: 0.75rem;
+}
+
+.field {
+  margin-bottom: 1rem;
+}
+
+.field label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--cra-muted);
+  margin-bottom: 0.25rem;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--cra-border);
+  border-radius: 3px;
+  font: inherit;
+  background: #f9fafb;
+  color: var(--cra-text);
+}
+
+.field input:read-only {
+  cursor: default;
+}
+
+.actions {
+  margin-top: 1.5rem;
+}
+
+.btn-primary {
+  background: var(--cra-blue);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 0.7rem 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1e2c3b;
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.status {
+  margin-top: 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  display: none;
+}
+
+.status.visible {
+  display: block;
+}
+
+.status.info {
+  background: #e8f4fc;
+  border: 1px solid #b8daef;
+  color: #1a5276;
+}
+
+.status.error {
+  background: #fdecea;
+  border: 1px solid #f5c6cb;
+  color: #842029;
+}
+
+footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--cra-muted);
+  padding: 1.25rem 1rem;
+  border-top: 1px solid var(--cra-border);
+  background: #fff;
+}

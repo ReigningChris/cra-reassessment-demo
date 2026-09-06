@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en-CA">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Canada Revenue Agency — Reassessment inquiry</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="config.js"></script>
+  </head>
+  <body>
+    <header class="banner">
+      <div class="banner-flag">
+        <img src="canada-flag.svg" alt="Flag of Canada" width="56" height="28" />
+      </div>
+      <div class="banner-text">
+        <div class="banner-mark">Canada Revenue Agency</div>
+        <div class="banner-sub">Reassessment inquiry</div>
+      </div>
+    </header>
+
+    <main>
+      <div class="card">
+        <h1>Review your information</h1>
+        <p class="lead">
+          Please review the details from your reassessment intake form below. When you are ready,
+          start a secure chat with a CRA virtual assistant.
+        </p>
+
+        <form id="intake-form" aria-label="CRA reassessment intake review">
+          <fieldset>
+            <legend>Your submitted details</legend>
+
+            <div class="field">
+              <label for="citizen_name">Name</label>
+              <input id="citizen_name" name="citizen_name" type="text" readonly />
+            </div>
+
+            <div class="field">
+              <label for="contact_email">Email</label>
+              <input id="contact_email" name="contact_email" type="email" readonly />
+            </div>
+
+            <div class="field">
+              <label for="issue_category">Issue category</label>
+              <input id="issue_category" name="issue_category" type="text" readonly />
+            </div>
+
+            <div class="field">
+              <label for="form_submission_id">Reference number</label>
+              <input id="form_submission_id" name="form_submission_id" type="text" readonly />
+            </div>
+          </fieldset>
+
+          <div class="actions">
+            <button type="button" class="btn-primary" id="start-chat" disabled>
+              Start chat with CRA Assistant
+            </button>
+          </div>
+
+          <div id="status" class="status" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </main>
+
+    <footer>Canada Revenue Agency</footer>
+
+    <script>
+      (function () {
+        const cfg = window.CRA_DEMO_CONFIG || {};
+        const ctx = cfg.startContext || {};
+        const statusEl = document.getElementById("status");
+        const startBtn = document.getElementById("start-chat");
+
+        function showStatus(message, type) {
+          statusEl.textContent = message;
+          statusEl.className = "status visible " + type;
+        }
+
+        Object.keys(ctx).forEach(function (key) {
+          const el = document.getElementById(key);
+          if (el) el.value = ctx[key];
+        });
+
+        if (!cfg.deploymentId) {
+          showStatus("Chat is temporarily unavailable. Please try again later.", "error");
+          return;
+        }
+
+        (function loadGenesysBootstrap() {
+          var g = window;
+          var e = "Genesys";
+          var n = "https://apps.mypurecloud.com/genesys-bootstrap/genesys.min.js";
+          var es = { environment: cfg.environment || "prod", deploymentId: cfg.deploymentId };
+          g._genesysJs = e;
+          g[e] =
+            g[e] ||
+            function () {
+              (g[e].q = g[e].q || []).push(arguments);
+            };
+          g[e].t = 1 * new Date();
+          g[e].c = es;
+          var ys = document.createElement("script");
+          ys.async = 1;
+          ys.src = n;
+          ys.charset = "utf-8";
+          ys.onload = function () {
+            startBtn.disabled = false;
+            showStatus("Secure chat is ready. Click the button above to begin.", "info");
+          };
+          ys.onerror = function () {
+            showStatus("Unable to load chat services. Please refresh the page or try again later.", "error");
+          };
+          document.head.appendChild(ys);
+        })();
+
+        startBtn.addEventListener("click", function () {
+          if (typeof Genesys !== "function") {
+            showStatus("Chat is still loading. Please wait a moment and try again.", "error");
+            return;
+          }
+          Genesys("command", "Database.set", {
+            messaging: {
+              customAttributes: {
+                citizen_name: ctx.citizen_name,
+                contact_email: ctx.contact_email,
+                issue_category: ctx.issue_category,
+                form_submission_id: ctx.form_submission_id,
+              },
+            },
+          });
+          Genesys("command", "Messenger.open");
+          showStatus("Your chat session is open.", "info");
+        });
+      })();
+    </script>
+  </body>
+</html>
